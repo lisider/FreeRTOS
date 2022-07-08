@@ -33,6 +33,7 @@
 
 #include "riscv-virt.h"
 #include "ns16550.h"
+#include "string.h"
 
 /* Priorities used by the tasks. */
 #define mainQUEUE_RECEIVE_TASK_PRIORITY		( tskIDLE_PRIORITY + 2 )
@@ -57,6 +58,19 @@ static QueueHandle_t xQueue = NULL;
 
 /*-----------------------------------------------------------*/
 
+void gen_str(char *buf, const char * const pcMessage1, const char * const pcMessage2, int f){
+
+	buf[0] = xGetCoreID()-0+'0';
+	buf[1] = ':';
+	buf[2] = ' ';
+	strcpy(buf+3,pcTaskGetName( xTaskGetCurrentTaskHandle()));
+	buf[5] = ':';
+	buf[6] = ' ';
+	( f ) ? \
+		(strcpy(buf+7,pcMessage1)) \
+		: (strcpy(buf+7,pcMessage2));
+}
+
 static void prvQueueSendTask( void *pvParameters )
 {
 TickType_t xNextWakeTime;
@@ -75,9 +89,7 @@ int f = 1;
 	{
 		char buf[40];
 
-		sprintf( buf, "%d: %s: %s", xGetCoreID(),
-				pcTaskGetName( xTaskGetCurrentTaskHandle() ),
-				( f ) ? pcMessage1 : pcMessage2 );
+		gen_str(buf,pcMessage1,pcMessage2,f);
 		vSendString( buf );
 		f = !f;
 
@@ -119,9 +131,7 @@ int f = 1;
 		is it the expected value?  If it is, toggle the LED. */
 		if( ulReceivedValue == ulExpectedValue )
 		{
-			sprintf( buf, "%d: %s: %s", xGetCoreID(),
-					pcTaskGetName( xTaskGetCurrentTaskHandle() ),
-					( f ) ? pcMessage1 : pcMessage2 );
+			gen_str(buf,pcMessage1,pcMessage2,f);
 			vSendString( buf );
 			f = !f;
 
@@ -141,7 +151,7 @@ int main_blinky( void )
 	vSendString( "Hello FreeRTOS!" );
 
 	/* Create the queue. */
-	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
+	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint64_t ) );
 
 	if( xQueue != NULL )
 	{

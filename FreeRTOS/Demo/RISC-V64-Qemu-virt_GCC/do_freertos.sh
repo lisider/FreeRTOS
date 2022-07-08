@@ -20,10 +20,10 @@ Clean(){
 Run(){
     [ -f log_run ] && mv log_run log_run_bak
 
-    qemu-system-riscv32 -nographic -machine virt -net none  \
+    qemu-system-riscv64 -nographic -machine virt -net none  \
         -chardev stdio,id=con,mux=on -serial chardev:con    \
         -mon chardev=con,mode=readline -bios none           \
-        -smp 4 -kernel ./build/RTOSDemo.axf                 \
+        -smp 1 -kernel ./build/RTOSDemo.axf                 \
         2>&1 | tee log_run
 }
 
@@ -32,21 +32,20 @@ Debug_run(){
     [ -f log_run ] && mv log_run log_run_bak
     [ -f log_gdb ] && mv log_gdb log_gdb_bak
 
-    qemu-system-riscv32 -nographic -machine virt -net none  \
+    qemu-system-riscv64 -nographic -machine virt -net none  \
         -chardev stdio,id=con,mux=on -serial chardev:con    \
         -mon chardev=con,mode=readline -bios none           \
-        -smp 4 -kernel ./build/RTOSDemo.axf                 \
+        -smp 1 -kernel ./build/RTOSDemo.axf                 \
         -S -s                                               \
         2>&1 | tee log_run
 }
 
 Debug_gdb(){
-    echo "set logging file log_gdb"     >  gdb_init
-    echo "set logging on"               >> gdb_init
-    echo "set  architecture riscv:rv32" >> gdb_init
-    echo "target remote localhost:1234" >> gdb_init
-    echo "b _start"                     >> gdb_init
-    riscv64-unknown-elf-gdb -x gdb_init -tui ./build/RTOSDemo.axf
+    #echo "set logging file log_gdb"     >  gdb_init
+    #echo "set logging on"               >> gdb_init
+    #echo "set  architecture riscv:rv64" >> gdb_init
+    #echo "target remote localhost:1234" >> gdb_init
+    riscv64-unknown-linux-gnu-gdb -x gdb_init -tui ./build/RTOSDemo.axf
 }
 
 Simple(){
@@ -136,7 +135,7 @@ Simple_with_log(){
 }
 
 Kill(){
-    killall qemu-system-riscv32
+    killall qemu-system-riscv64
 }
 
 ##########################################################

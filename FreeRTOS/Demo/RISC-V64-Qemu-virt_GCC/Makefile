@@ -2,6 +2,7 @@ CROSS   = riscv64-unknown-elf-
 CC      = $(CROSS)gcc
 OBJCOPY = $(CROSS)objcopy
 ARCH    = $(CROSS)ar
+LD      = $(CROSS)ld
 
 BUILD_DIR       = build
 RTOS_SOURCE_DIR = $(abspath ../../Source)
@@ -14,16 +15,16 @@ CPPFLAGS = \
 	-I $(RTOS_SOURCE_DIR)/include \
 	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V \
 	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/chip_specific_extensions/RV32I_CLINT_no_extensions
-CFLAGS  = -march=rv32ima -mabi=ilp32 -mcmodel=medany \
+CFLAGS  = -march=rv64ima -mabi=lp64 -mcmodel=medany \
 	-Wall \
 	-fmessage-length=0 \
 	-ffunction-sections \
 	-fdata-sections \
 	-fno-builtin-printf
-ASFLAGS = -march=rv32ima -mabi=ilp32 -mcmodel=medany
+ASFLAGS = -march=rv64ima -mabi=lp64 -mcmodel=medany
 LDFLAGS = -nostartfiles -Tfake_rom.lds \
-	-Xlinker --gc-sections \
-	-Xlinker --defsym=__stack_size=300
+	--gc-sections \
+	--defsym=__stack_size=300
 
 ifeq ($(DEBUG), 1)
     CFLAGS += -Og -ggdb3
@@ -32,6 +33,7 @@ else
 endif
 
 SRCS = main.c main_blinky.c riscv-virt.c ns16550.c \
+	string.c _clzsi2.c _clzdi2.c \
 	$(DEMO_SOURCE_DIR)/EventGroupsDemo.c \
 	$(DEMO_SOURCE_DIR)/TaskNotify.c \
 	$(DEMO_SOURCE_DIR)/TimerDemo.c \
@@ -54,7 +56,7 @@ OBJS = $(SRCS:%.c=$(BUILD_DIR)/%.o) $(ASMS:%.S=$(BUILD_DIR)/%.o)
 DEPS = $(SRCS:%.c=$(BUILD_DIR)/%.d) $(ASMS:%.S=$(BUILD_DIR)/%.d)
 
 $(BUILD_DIR)/RTOSDemo.axf: $(OBJS) fake_rom.lds Makefile
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(LD) $(LDFLAGS) $(OBJS) -o $@
 
 $(BUILD_DIR)/%.o: %.c Makefile
 	@mkdir -p $(@D)
