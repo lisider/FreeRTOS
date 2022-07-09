@@ -27,6 +27,7 @@ LDFLAGS = -nostartfiles -Tfake_rom.lds \
 
 ifeq ($(DEBUG), 1)
     CFLAGS += -Og -ggdb3
+    ASFLAGS += -Og -ggdb3
 else
     CFLAGS += -O2
 endif
